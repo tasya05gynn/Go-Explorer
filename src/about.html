@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wishlist</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #wishlist-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<center>
+    <header>
+        <h3>Exploring the World With</h3>
+        <h1>GoExplorer</h1>
+        <div class="sticky">
+            <div class="navbar">
+            <nav>
+            <a href="index.html">OVERVIEW</a>
+            <a href="about.html">WISHLIST</a>
+            <a href="faqs.html">FAQS</a>
+
+        </nav>
+        </div>
+        </div>
+    </header>
+
+    <div id="wishlist-container">
+        <div id="wishlist"></div>
+    </div>
+    <div id="message" style="display: none; color: rgb(2, 55, 136);">Item added to wishlist!</div>
+
+    <script>
+        // the added data will be stred in localStorage
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+
+        // display wishlist and to-do-list
+        function displayWishlist() {
+            const wishlistContainer = document.getElementById('wishlist');
+            wishlistContainer.innerHTML = '';
+
+            if (wishlist.length === 0) {
+                wishlistContainer.innerHTML = '<p>Your wishlist is empty.</p>';
+                return;
+            }
+
+            wishlist.forEach((item, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'wishlist-item';
+
+                itemDiv.innerHTML = `
+                    <h2>${item.name}</h2>
+                    <p><strong>Area:</strong> ${item.area || 'N/A'}</p>
+                    <p><strong>Continent:</strong> ${item.continent || 'N/A'}</p>
+                    <p><strong>Region:</strong> ${item.region || 'N/A'}</p>
+                    <p><strong>Capital City:</strong> ${item.capital || 'N/A'}</p>
+                    <p><strong>Population:</strong> ${item.population || 'N/A'}</p>
+                    <button onclick="showToDoList(${index})">Manage To-Do List</button>
+                    <button onclick="removeFromWishlist(${index})">Remove from Wishlist</button><br>
+                    <div id="todo-container-${index}"></div>
+                `;
+
+                wishlistContainer.appendChild(itemDiv);
+            });
+        }
+
+        // display edit/delete options for to-do-list
+        function showToDoList(index) {
+            const item = wishlist[index];
+            const toDoContainer = document.getElementById(`todo-container-${index}`);
+
+            const toDoList = item.toDo || [];
+            let toDoHTML = `<h3>To-Do List for ${item.name}</h3><ul>`;
+
+            toDoList.forEach((task, taskIndex) => {
+                toDoHTML += `<li>
+                    <span id="task-${index}-${taskIndex}">${task}</span>
+                    <button onclick="editToDoItem(${index}, ${taskIndex})">Edit</button>
+                    <button onclick="deleteToDoItem(${index}, ${taskIndex})">Delete</button>
+                </li>`;
+            });
+
+            toDoHTML += `</ul>
+                <input type="text" id="newTask-${index}" placeholder="New Task" />
+                <button onclick="addToDoItem(${index})">Add Task</button>
+            `;
+
+            toDoContainer.innerHTML = toDoHTML;
+        }
+
+        // add new to-do-list
+        function addToDoItem(index) {
+            const newTaskInput = document.getElementById(`newTask-${index}`);
+            const newTask = newTaskInput.value.trim();
+
+            if (newTask) {
+                wishlist[index].toDo = wishlist[index].toDo || [];
+                wishlist[index].toDo.push(newTask);
+                saveWishlist();
+                displayWishlist();
+                showToDoList(index);
+                newTaskInput.value = ''; 
+            }
+        }
+
+        // edit to-do-list
+        function editToDoItem(itemIndex, taskIndex) {
+            const taskSpan = document.getElementById(`task-${itemIndex}-${taskIndex}`);
+            const currentTask = wishlist[itemIndex].toDo[taskIndex];
+
+            taskSpan.innerHTML = `
+                <textarea id="editTask-${itemIndex}-${taskIndex}">${currentTask}</textarea>
+                <button onclick="saveEditedToDoItem(${itemIndex}, ${taskIndex})">Save</button>
+                <button onclick="cancelEdit(${itemIndex}, ${taskIndex}, '${currentTask}')">Cancel</button>
+            `;
+        }
+
+        // save to-do-list
+        function saveEditedToDoItem(itemIndex, taskIndex) {
+            const editedTask = document.getElementById(`editTask-${itemIndex}-${taskIndex}`).value;
+            wishlist[itemIndex].toDo[taskIndex] = editedTask;
+            saveWishlist();
+            displayWishlist();
+            showToDoList(itemIndex);
+        }
+
+        // cancel edited to-do-list
+        function cancelEdit(itemIndex, taskIndex, originalTask) {
+            const taskSpan = document.getElementById(`task-${itemIndex}-${taskIndex}`);
+            taskSpan.innerHTML = originalTask;
+        }
+
+        // delete edited to-do-list
+        function deleteToDoItem(itemIndex, taskIndex) {
+            wishlist[itemIndex].toDo.splice(taskIndex, 1);
+            saveWishlist();
+            displayWishlist();
+            showToDoList(itemIndex);
+        }
+
+        // remove added place from wishlist
+        function removeFromWishlist(index) {
+            wishlist.splice(index, 1);
+            saveWishlist();
+            displayWishlist();
+        }
+
+        // save wishlist to localStrage
+        function saveWishlist() {
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        }
+
+        // display the loaded wishlist
+        window.onload = () => {
+            displayWishlist();
+        };
+    </script>
+    </center>
+</body>
+</html>
